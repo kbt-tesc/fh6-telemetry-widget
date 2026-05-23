@@ -130,7 +130,15 @@ app.whenReady().then(() => {
   }
   bindUdp();
 
+  function isValidHost(h) {
+    return typeof h === 'string' && /^\d{1,3}(\.\d{1,3}){3}$/.test(h);
+  }
+  function isValidPort(p) {
+    return Number.isInteger(p) && p >= 1 && p <= 65535;
+  }
+
   ipcMain.on('win-rebind', (_, host, port) => {
+    if (!isValidHost(host) || !isValidPort(port)) return;
     settings.host = host;
     settings.port = port;
     saveSettings();
