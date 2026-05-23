@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:transparent;overflow:hidden;user-select:none}
+
+#root{
+  background:rgba(10,10,14,.82);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  width:100vw;height:100vh;
+  display:flex;flex-direction:column;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:#e0e0e0;
+}
+
+/* Title bar */
+#titlebar{
+  -webkit-app-region:drag;
+  display:flex;align-items:center;
+  padding:6px 8px;
+  gap:8px;
+  font-size:13px;font-weight:600;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  flex-shrink:0;
+}
+#titlebar .badge{
+  background:#3b82f6;color:#fff;
+  padding:1px 7px;border-radius:4px;
+  font-size:12px;font-weight:700;
+  min-width:22px;text-align:center;
+}
+#titlebar .info{color:#aaa;font-size:12px;font-weight:400}
+#titlebar .spacer{flex:1}
+
+/* Bottom bar */
+#bottombar{
+  display:flex;flex-shrink:0;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+#bottombar button{
+  flex:1;
+  background:none;border:none;color:#666;
+  font-size:10px;cursor:pointer;
+  padding:5px 0;
+  transition:background .15s,color .15s;
+}
+#bottombar button:hover{background:rgba(255,255,255,.08);color:#ccc}
+#btn-close:hover{background:rgba(229,57,53,.3);color:#f87171}
+#btn-min{border-right:1px solid rgba(255,255,255,.06);border-radius:0 0 0 10px}
+#btn-close{border-radius:0 0 10px 0}
+
+/* Content */
+#content{flex:1;display:flex;flex-direction:column;padding:8px 10px;gap:8px;min-height:0}
+
+/* Steer */
+#steer-section{flex-shrink:0}
+.section-label{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+#steer-wrap{
+  height:18px;background:rgba(255,255,255,.06);
+  border-radius:3px;position:relative;overflow:hidden;
+}
+#steer-center{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.15)}
+#steer-fill{
+  position:absolute;top:2px;bottom:2px;
+  background:#eab308;border-radius:2px;
+  transition:left 16ms linear,width 16ms linear;
+}
+#steer-val{font-size:11px;color:#888;text-align:center;margin-top:2px;font-variant-numeric:tabular-nums}
+
+/* Pedals + HB area */
+#pedals-area{flex:1;display:flex;gap:12px;align-items:stretch;min-height:0}
+
+/* Vertical bars */
+.vbar-group{display:flex;flex-direction:column;align-items:center;width:48px;flex-shrink:0}
+.vbar-label{font-size:10px;color:#666;text-transform:uppercase;margin-bottom:3px}
+.vbar-wrap{
+  flex:1;width:100%;
+  background:rgba(255,255,255,.06);
+  border-radius:4px;position:relative;overflow:hidden;
+  min-height:40px;
+}
+.vbar-fill{
+  position:absolute;bottom:0;left:0;right:0;
+  border-radius:0 0 4px 4px;
+  transition:height 16ms linear;
+}
+.vbar-fill.green{background:linear-gradient(0deg,#16a34a,#4ade80)}
+.vbar-fill.red{background:linear-gradient(0deg,#dc2626,#f87171)}
+.vbar-val{
+  font-size:12px;font-weight:600;text-align:center;margin-top:3px;
+  font-variant-numeric:tabular-nums;font-family:'Consolas',monospace;
+}
+
+/* Indicators (Clutch + HandBrake) */
+#indicator-area{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  flex:1;
+  gap:10px;
+}
+.indicator-item{display:flex;flex-direction:column;align-items:center;gap:3px}
+.dot{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid #555;
+  transition:background .12s,border-color .12s,box-shadow .12s;
+}
+#hb-dot.on{
+  background:#ef4444;border-color:#ef4444;
+  box-shadow:0 0 10px rgba(239,68,68,.5);
+}
+#cl-dot.on{
+  background:#3b82f6;border-color:#3b82f6;
+  box-shadow:0 0 10px rgba(59,130,246,.5);
+}
+.ind-label{font-size:9px;color:#666;text-transform:uppercase}
+
+/* Gear */
+#gear-area{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  width:48px;flex-shrink:0;
+}
+#gear-val{
+  font-size:36px;font-weight:800;line-height:1;
+  color:#93c5fd;
+  font-family:'Consolas',monospace;
+}
+#gear-label{font-size:10px;color:#666;text-transform:uppercase;margin-top:2px}
+
+/* Waiting */
+#waiting{
+  font-size:11px;color:#555;text-align:center;
+  padding:2px;flex-shrink:0;
+}
+
+/* Auto-hide fade */
+#root{transition:opacity .4s ease}
+#root.hidden{opacity:0;pointer-events:none}
+
+/* Settings panel */
+#settings{
+  display:none;
+  position:absolute;inset:0;
+  background:rgba(10,10,14,.95);
+  border-radius:10px;
+  z-index:10;
+  flex-direction:column;
+  padding:12px;
+  gap:14px;
+}
+#settings.open{display:flex}
+#settings h3{
+  font-size:13px;color:#aaa;
+  text-transform:uppercase;letter-spacing:1px;
+  margin:0;
+}
+.setting-row{
+  display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;
+}
+.setting-row label{
+  font-size:11px;color:#ccc;flex-shrink:0;
+}
+.setting-row input[type=range]{
+  flex:1;min-width:60px;accent-color:#3b82f6;height:4px;
+}
+.setting-row .range-val{
+  font-size:11px;color:#888;width:28px;text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+.setting-row input[type=checkbox]{
+  accent-color:#3b82f6;width:16px;height:16px;
+}
+.text-input{
+  flex:1;min-width:60px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  border-radius:4px;color:#e0e0e0;
+  font-size:12px;padding:3px 6px;
+  font-family:'Consolas',monospace;
+  outline:none;
+}
+.text-input:focus{border-color:#3b82f6}
+.link-btn{
+  background:none;border:none;color:#3b82f6;
+  font-size:11px;cursor:pointer;padding:2px 4px;
+  flex-shrink:0;white-space:nowrap;
+}
+.link-btn:hover{text-decoration:underline}
+#settings-close{
+  margin-top:auto;align-self:center;
+  background:#3b82f6;color:#fff;
+  border:none;border-radius:6px;
+  padding:6px 24px;font-size:12px;
+  cursor:pointer;font-weight:600;
+}
+#settings-close:hover{background:#2563eb}
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="settings">
+    <h3>Settings</h3>
+    <div class="setting-row">
+      <label>背景を完全透明</label>
+      <input type="checkbox" id="s-transparent">
+    </div>
+    <div class="setting-row" id="s-opacity-row">
+      <label>背景透明度</label>
+      <input type="range" id="s-opacity" min="10" max="100" step="1">
+      <span class="range-val" id="s-opacity-val">82%</span>
+    </div>
+    <div class="setting-row">
+      <label>常に最前面</label>
+      <input type="checkbox" id="s-aot" checked>
+    </div>
+    <div class="setting-row">
+      <label>メニュー時非表示</label>
+      <input type="checkbox" id="s-autohide">
+    </div>
+    <div class="setting-row" id="s-autohide-sec-row" style="display:none">
+      <label>非表示までの秒数</label>
+      <input type="range" id="s-autohide-sec" min="1" max="10" step="1">
+      <span class="range-val" id="s-autohide-sec-val">3s</span>
+    </div>
+    <div class="setting-row">
+      <label>Port</label>
+      <input type="number" id="s-port" class="text-input" value="34598" min="1" max="65535">
+      <button id="btn-show-ip" class="link-btn">IP指定</button>
+    </div>
+    <div class="setting-row" id="s-host-row" style="display:none">
+      <label>IP Address</label>
+      <input type="text" id="s-host" class="text-input" value="127.0.0.1">
+      <button id="btn-reset-ip" class="link-btn">リセット</button>
+    </div>
+    <button id="settings-close">閉じる</button>
+  </div>
+
+  <div id="titlebar">
+    <span class="badge" id="t-class">-</span>
+    <span id="t-pi">---</span>
+    <span class="info" id="t-drive">---</span>
+    <span class="spacer"></span>
+    <span id="waiting"></span>
+  </div>
+
+  <div id="content">
+    <div id="steer-section">
+      <div class="section-label">Steer</div>
+      <div id="steer-wrap">
+        <div id="steer-center"></div>
+        <div id="steer-fill"></div>
+      </div>
+      <div id="steer-val">0°</div>
+    </div>
+
+    <div id="pedals-area">
+      <div class="vbar-group">
+        <div class="vbar-label">Accel</div>
+        <div class="vbar-wrap"><div class="vbar-fill green" id="bar-accel"></div></div>
+      </div>
+
+      <div class="vbar-group">
+        <div class="vbar-label">Brake</div>
+        <div class="vbar-wrap"><div class="vbar-fill red" id="bar-brake"></div></div>
+      </div>
+
+      <div id="indicator-area">
+        <div class="indicator-item">
+          <div class="dot" id="cl-dot"></div>
+          <div class="ind-label">Clutch</div>
+        </div>
+        <div class="indicator-item">
+          <div class="dot" id="hb-dot"></div>
+          <div class="ind-label">H.Brake</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="bottombar">
+    <button id="btn-min" onclick="api.minimize()">&#x2212; Minimize</button>
+    <button id="btn-close" onclick="api.close()">&#x2715; Close</button>
+  </div>
+</div>
+
+<script>
+const CLASS_NAMES = ['D','C','B','A','S1','S2','S2+','X'];
+const CLASS_COLORS = ['#6b7280','#6b7280','#a78bfa','#3b82f6','#f59e0b','#ef4444','#ec4899','#8b5cf6'];
+const DRIVE_NAMES = ['FWD','RWD','AWD'];
+
+const $ = (id) => document.getElementById(id);
+const root = $('root');
+const settingsPanel = $('settings');
+
+// --- Settings panel ---
+let settingsOpen = false;
+
+let bgTransparent = false;
+
+function applyOpacity(v) {
+  root.style.background = bgTransparent ? 'transparent' : `rgba(10,10,14,${v / 100})`;
+  root.style.borderColor = bgTransparent ? 'transparent' : 'rgba(255,255,255,.08)';
+  $('s-opacity').value = v;
+  $('s-opacity-val').textContent = v + '%';
+  $('s-opacity-row').style.display = bgTransparent ? 'none' : 'flex';
+}
+
+function applyTransparent(on) {
+  bgTransparent = on;
+  $('s-transparent').checked = on;
+  applyOpacity(Number($('s-opacity').value));
+}
+
+document.addEventListener('dblclick', (e) => {
+  if (settingsOpen || e.target.closest('#titlebar')) return;
+  settingsOpen = true;
+  settingsPanel.classList.add('open');
+});
+
+$('settings-close').addEventListener('click', () => {
+  settingsOpen = false;
+  settingsPanel.classList.remove('open');
+  const host = $('s-host').value.trim() || '127.0.0.1';
+  const port = parseInt($('s-port').value, 10) || 34598;
+  $('s-host').value = host;
+  $('s-port').value = port;
+  api.rebind(host, port);
+});
+
+$('s-transparent').addEventListener('change', (e) => {
+  applyTransparent(e.target.checked);
+  api.setSetting('bgTransparent', e.target.checked);
+});
+
+$('s-opacity').addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  applyOpacity(v);
+  api.setOpacity(v / 100);
+});
+
+$('s-aot').addEventListener('change', (e) => {
+  api.setAlwaysOnTop(e.target.checked);
+});
+
+// Auto-hide settings
+let autoHide = false;
+let autoHideSec = 3;
+let hideTimer = null;
+
+function applyAutoHide(on, sec) {
+  autoHide = on;
+  autoHideSec = sec;
+  $('s-autohide').checked = on;
+  $('s-autohide-sec').value = sec;
+  $('s-autohide-sec-val').textContent = sec + 's';
+  $('s-autohide-sec-row').style.display = on ? 'flex' : 'none';
+  if (!on) {
+    clearTimeout(hideTimer);
+    root.classList.remove('hidden');
+  }
+}
+
+$('s-autohide').addEventListener('change', (e) => {
+  applyAutoHide(e.target.checked, autoHideSec);
+  api.setSetting('autoHide', e.target.checked);
+});
+
+$('s-autohide-sec').addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  autoHideSec = v;
+  $('s-autohide-sec-val').textContent = v + 's';
+  api.setSetting('autoHideSec', v);
+});
+
+api.getSettings().then((s) => {
+  applyTransparent(s.bgTransparent || false);
+  applyOpacity(Math.round(s.opacity * 100));
+  $('s-aot').checked = s.alwaysOnTop;
+  applyAutoHide(s.autoHide || false, s.autoHideSec || 3);
+  const host = s.host || '127.0.0.1';
+  $('s-host').value = host;
+  $('s-port').value = s.port || 34598;
+  if (host !== '127.0.0.1') {
+    $('s-host-row').style.display = 'flex';
+    $('btn-show-ip').style.display = 'none';
+  }
+});
+
+$('btn-show-ip').addEventListener('click', () => {
+  $('s-host-row').style.display = 'flex';
+  $('btn-show-ip').style.display = 'none';
+});
+
+$('btn-reset-ip').addEventListener('click', () => {
+  $('s-host').value = '127.0.0.1';
+  $('s-host-row').style.display = 'none';
+  $('btn-show-ip').style.display = '';
+});
+
+// --- Telemetry ---
+api.onTelemetry((d) => {
+  if (d.isRaceOn !== 1) {
+    $('waiting').textContent = 'Waiting...';
+    if (autoHide && !hideTimer && !settingsOpen) {
+      hideTimer = setTimeout(() => { root.classList.add('hidden'); }, autoHideSec * 1000);
+    }
+    return;
+  }
+  $('waiting').textContent = '';
+  if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+  root.classList.remove('hidden');
+
+  // Car info
+  const badge = $('t-class');
+  badge.textContent = CLASS_NAMES[d.carClass] || d.carClass;
+  badge.style.background = CLASS_COLORS[d.carClass] || '#3b82f6';
+  $('t-pi').textContent = d.carPI;
+  $('t-drive').textContent = DRIVE_NAMES[d.drivetrain] || d.drivetrain;
+
+  // Steer
+  const ratio = d.steer / 127;
+  const center = 50;
+  const offset = ratio * 48;
+  const left = Math.min(center, center + offset);
+  const width = Math.abs(offset);
+  const sf = $('steer-fill');
+  sf.style.left = left + '%';
+  sf.style.width = Math.max(width, 0.5) + '%';
+  $('steer-val').textContent = (d.steer / 127 * 180).toFixed(0) + '°';
+
+  // Accel / Brake
+  $('bar-accel').style.height = (d.accel / 255 * 100) + '%';
+  $('bar-brake').style.height = (d.brake / 255 * 100) + '%';
+
+  // Clutch / HandBrake
+  $('cl-dot').classList.toggle('on', d.clutch > 0);
+  $('hb-dot').classList.toggle('on', d.handBrake > 0);
+});
+</script>
+</body>
+</html>
