@@ -18,11 +18,15 @@ let settings = { opacity: 0.82, alwaysOnTop: true, autoHide: false, autoHideSec:
 
 function loadSettings() {
   try {
-    const data = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
-    const allowed = ['opacity', 'alwaysOnTop', 'autoHide', 'autoHideSec', 'bgTransparent', 'bounds', 'host', 'port'];
-    for (const k of allowed) {
-      if (k in data) settings[k] = data[k];
-    }
+    const d = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
+    if (typeof d.opacity === 'number' && d.opacity >= 0 && d.opacity <= 1) settings.opacity = d.opacity;
+    if (typeof d.alwaysOnTop === 'boolean') settings.alwaysOnTop = d.alwaysOnTop;
+    if (typeof d.autoHide === 'boolean') settings.autoHide = d.autoHide;
+    if (typeof d.autoHideSec === 'number' && d.autoHideSec >= 1 && d.autoHideSec <= 10) settings.autoHideSec = d.autoHideSec;
+    if (typeof d.bgTransparent === 'boolean') settings.bgTransparent = d.bgTransparent;
+    if (typeof d.host === 'string' && /^\d{1,3}(\.\d{1,3}){3}$/.test(d.host)) settings.host = d.host;
+    if (Number.isInteger(d.port) && d.port >= 1 && d.port <= 65535) settings.port = d.port;
+    if (d.bounds && typeof d.bounds === 'object' && typeof d.bounds.width === 'number') settings.bounds = d.bounds;
   } catch {}
 }
 
