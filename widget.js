@@ -3,6 +3,9 @@ const dgram = require('dgram');
 const fs = require('fs');
 const path = require('path');
 
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) { app.quit(); }
+
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 34598;
 let SETTINGS_PATH;
@@ -125,6 +128,13 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('get-settings', () => settings);
+});
+
+app.on('second-instance', () => {
+  if (win) {
+    if (win.isMinimized()) win.restore();
+    win.focus();
+  }
 });
 
 app.on('window-all-closed', () => app.quit());
