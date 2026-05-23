@@ -1,0 +1,32 @@
+{
+  "name": "fh6-telemetry-widget",
+  "version": "1.0.0",
+  "description": "Forza Horizon 6 Telemetry Widget",
+  "main": "widget.js",
+  "scripts": {
+    "widget": "electron widget.js",
+    "build": "electron-builder --win"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^42.2.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "org.kebity.kbt-fh6-telemetory",
+    "productName": "FH6 Telemetry Widget",
+    "win": {
+      "target": "portable"
+    },
+    "files": [
+      "widget.js",
+      "widget-preload.js",
+      "widget.html"
+    ],
+    "portable": {
+      "artifactName": "FH6-Telemetry-Widget.exe"
+    }
+  }
+}
