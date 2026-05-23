@@ -15,7 +15,7 @@
     "electron-builder": "^26.8.1"
   },
   "build": {
-    "appId": "org.kebity.kbt-fh6-telemetory",
+    "appId": "org.kebity.kbt-fh6-telemetry",
     "productName": "FH6 Telemetry Widget",
     "win": {
       "target": "portable"
