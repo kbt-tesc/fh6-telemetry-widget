@@ -4,25 +4,32 @@ const fs = require('fs');
 const path = require('path');
 
 const gotLock = app.requestSingleInstanceLock();
-if (!gotLock) { app.quit(); }
+if (!gotLock) { app.quit(); return; }
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 34598;
+const ALLOWED_SETTING_KEYS = new Set(['autoHide', 'autoHideSec', 'bgTransparent']);
 let SETTINGS_PATH;
 
 let win;
 let latestData = null;
-let settings = { opacity: 0.82, alwaysOnTop: true, autoHide: false, autoHideSec: 3, bounds: null, host: DEFAULT_HOST, port: DEFAULT_PORT };
+let sendTimer = null;
+let settings = { opacity: 0.82, alwaysOnTop: true, autoHide: false, autoHideSec: 3, bgTransparent: false, bounds: null, host: DEFAULT_HOST, port: DEFAULT_PORT };
 
 function loadSettings() {
   try {
-    const data = fs.readFileSync(SETTINGS_PATH, 'utf8');
-    Object.assign(settings, JSON.parse(data));
+    const data = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
+    const allowed = ['opacity', 'alwaysOnTop', 'autoHide', 'autoHideSec', 'bgTransparent', 'bounds', 'host', 'port'];
+    for (const k of allowed) {
+      if (k in data) settings[k] = data[k];
+    }
   } catch {}
 }
 
 function saveSettings() {
-  fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
+  try {
+    fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
+  } catch {}
 }
 
 function saveBounds() {
@@ -65,6 +72,10 @@ function createWindow() {
   win.on('move', debounceSaveBounds);
 }
 
+function isWinValid() {
+  return win && !win.isDestroyed();
+}
+
 app.whenReady().then(() => {
   SETTINGS_PATH = path.join(app.getPath('userData'), 'widget-settings.json');
   loadSettings();
@@ -73,24 +84,37 @@ app.whenReady().then(() => {
   let udp = null;
 
   function bindUdp() {
-    if (udp) { try { udp.close(); } catch {} }
-    udp = dgram.createSocket('udp4');
-    udp.on('message', (msg) => {
-      if (msg.length < 324) return;
-      latestData = {
-        isRaceOn:   msg.readInt32LE(0),
-        carClass:   msg.readInt32LE(216),
-        carPI:      msg.readInt32LE(220),
-        drivetrain: msg.readInt32LE(224),
-        accel:      msg.readUInt8(315),
-        brake:      msg.readUInt8(316),
-        clutch:     msg.readUInt8(317),
-        handBrake:  msg.readUInt8(318),
-        gear:       msg.readUInt8(319),
-        steer:      msg.readInt8(320),
-      };
-    });
-    udp.bind(settings.port || DEFAULT_PORT, settings.host || DEFAULT_HOST);
+    const oldUdp = udp;
+    udp = null;
+
+    function startNew() {
+      const newUdp = dgram.createSocket('udp4');
+      newUdp.on('message', (msg) => {
+        if (msg.length < 324) return;
+        latestData = {
+          isRaceOn:   msg.readInt32LE(0),
+          carClass:   msg.readInt32LE(216),
+          carPI:      msg.readInt32LE(220),
+          drivetrain: msg.readInt32LE(224),
+          accel:      msg.readUInt8(315),
+          brake:      msg.readUInt8(316),
+          clutch:     msg.readUInt8(317),
+          handBrake:  msg.readUInt8(318),
+          steer:      msg.readInt8(320),
+        };
+      });
+      newUdp.on('error', (err) => {
+        console.error('UDP error:', err.message);
+      });
+      newUdp.bind(settings.port || DEFAULT_PORT, settings.host || DEFAULT_HOST);
+      udp = newUdp;
+    }
+
+    if (oldUdp) {
+      try { oldUdp.close(startNew); } catch { startNew(); }
+    } else {
+      startNew();
+    }
   }
   bindUdp();
 
@@ -101,28 +125,29 @@ app.whenReady().then(() => {
     bindUdp();
   });
 
-  setInterval(() => {
-    if (latestData && win && !win.isDestroyed()) {
+  sendTimer = setInterval(() => {
+    if (latestData && isWinValid()) {
       win.webContents.send('telemetry', latestData);
     }
   }, 16);
 
-  ipcMain.on('win-minimize', () => win && win.minimize());
-  ipcMain.on('win-close', () => win && win.close());
+  ipcMain.on('win-minimize', () => isWinValid() && win.minimize());
+  ipcMain.on('win-close', () => isWinValid() && win.close());
 
   ipcMain.on('win-opacity', (_, v) => {
+    if (typeof v !== 'number' || v < 0 || v > 1) return;
     settings.opacity = v;
-    win.webContents.send('settings-updated', settings);
     saveSettings();
   });
 
   ipcMain.on('win-aot', (_, v) => {
     settings.alwaysOnTop = v;
-    win.setAlwaysOnTop(v, v ? 'screen-saver' : 'normal');
+    if (isWinValid()) win.setAlwaysOnTop(v, v ? 'screen-saver' : 'normal');
     saveSettings();
   });
 
   ipcMain.on('win-setting', (_, key, val) => {
+    if (!ALLOWED_SETTING_KEYS.has(key)) return;
     settings[key] = val;
     saveSettings();
   });
@@ -131,10 +156,13 @@ app.whenReady().then(() => {
 });
 
 app.on('second-instance', () => {
-  if (win) {
+  if (isWinValid()) {
     if (win.isMinimized()) win.restore();
     win.focus();
   }
 });
 
-app.on('window-all-closed', () => app.quit());
+app.on('window-all-closed', () => {
+  if (sendTimer) clearInterval(sendTimer);
+  app.quit();
+});

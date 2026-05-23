@@ -117,19 +117,6 @@ html,body{background:transparent;overflow:hidden;user-select:none}
 }
 .ind-label{font-size:9px;color:#666;text-transform:uppercase}
 
-/* Gear */
-#gear-area{
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  width:48px;flex-shrink:0;
-}
-#gear-val{
-  font-size:36px;font-weight:800;line-height:1;
-  color:#93c5fd;
-  font-family:'Consolas',monospace;
-}
-#gear-label{font-size:10px;color:#666;text-transform:uppercase;margin-top:2px}
-
 /* Waiting */
 #waiting{
   font-size:11px;color:#555;text-align:center;
@@ -279,8 +266,8 @@ html,body{background:transparent;overflow:hidden;user-select:none}
     </div>
   </div>
   <div id="bottombar">
-    <button id="btn-min" onclick="api.minimize()">&#x2212; Minimize</button>
-    <button id="btn-close" onclick="api.close()">&#x2715; Close</button>
+    <button id="btn-min">&#x2212; Minimize</button>
+    <button id="btn-close">&#x2715; Close</button>
   </div>
 </div>
 
@@ -312,8 +299,11 @@ function applyTransparent(on) {
   applyOpacity(Number($('s-opacity').value));
 }
 
+$('btn-min').addEventListener('click', () => api.minimize());
+$('btn-close').addEventListener('click', () => api.close());
+
 document.addEventListener('dblclick', (e) => {
-  if (settingsOpen || e.target.closest('#titlebar')) return;
+  if (settingsOpen || e.target.closest('#titlebar') || e.target.closest('#bottombar')) return;
   settingsOpen = true;
   settingsPanel.classList.add('open');
   if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
@@ -405,7 +395,7 @@ api.onTelemetry((d) => {
   if (d.isRaceOn !== 1) {
     $('waiting').textContent = 'Waiting...';
     if (autoHide && !hideTimer && !settingsOpen) {
-      hideTimer = setTimeout(() => { root.classList.add('hidden'); }, autoHideSec * 1000);
+      hideTimer = setTimeout(() => { root.classList.add('hidden'); hideTimer = null; }, autoHideSec * 1000);
     }
     return;
   }
@@ -421,7 +411,7 @@ api.onTelemetry((d) => {
   $('t-drive').textContent = DRIVE_NAMES[d.drivetrain] || d.drivetrain;
 
   // Steer
-  const ratio = d.steer / 127;
+  const ratio = Math.max(-1, Math.min(1, d.steer / 127));
   const center = 50;
   const offset = ratio * 48;
   const left = Math.min(center, center + offset);
