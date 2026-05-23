@@ -5,6 +5,10 @@ Forza Horizon 6 のテレメトリデータをリアルタイム表示する配�
 
 > このプロジェクトは [Claude Code](https://claude.ai/) で作成されました。
 
+![ゲーム画面+ウィジェット表示](docimages/preview.jpg)
+
+![ウィジェット単体](docimages/preview-widget.jpg)
+
 ## Download
 
 ビルド済み exe は [Releases ページ](https://github.com/kbt-tesc/fh6-telemetry-widget/releases) からダウンロードできます。
