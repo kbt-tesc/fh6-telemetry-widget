@@ -3,7 +3,7 @@
 Forza Horizon 6 のテレメトリデータをリアルタイム表示する配信向けオーバーレイウィジェットです。
 ウィジェットをダブルクリックすると設定画面が開き、透明度・常に最前面表示・受信 IP/ポートなどを変更できます。
 
-> このプロジェクトは [Claude Code](https://claude.ai/claude-code) で作成されました。
+> このプロジェクトは [Claude Code](https://claude.ai/) で作成されました。
 
 ## Download
 
