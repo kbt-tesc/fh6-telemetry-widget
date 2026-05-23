@@ -89,12 +89,15 @@ app.whenReady().then(() => {
   createWindow();
 
   let udp = null;
+  let bindGeneration = 0;
 
   function bindUdp() {
+    const gen = ++bindGeneration;
     const oldUdp = udp;
     udp = null;
 
     function startNew() {
+      if (gen !== bindGeneration) return;
       const newUdp = dgram.createSocket('udp4');
       newUdp.on('message', (msg) => {
         if (msg.length < 324) return;
@@ -112,6 +115,8 @@ app.whenReady().then(() => {
       });
       newUdp.on('error', (err) => {
         console.error('UDP error:', err.message);
+        try { newUdp.close(); } catch {}
+        if (gen === bindGeneration) udp = null;
       });
       newUdp.bind(settings.port || DEFAULT_PORT, settings.host || DEFAULT_HOST);
       udp = newUdp;
