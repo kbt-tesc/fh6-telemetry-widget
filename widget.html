@@ -316,6 +316,8 @@ document.addEventListener('dblclick', (e) => {
   if (settingsOpen || e.target.closest('#titlebar')) return;
   settingsOpen = true;
   settingsPanel.classList.add('open');
+  if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+  root.classList.remove('hidden');
 });
 
 $('settings-close').addEventListener('click', () => {
