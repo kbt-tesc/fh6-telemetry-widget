@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const dgram = require('dgram');
 const fs = require('fs');
 const path = require('path');
@@ -41,6 +41,13 @@ function saveBounds() {
 
 function createWindow() {
   const b = settings.bounds || { width: 300, height: 280 };
+  if (b.x !== undefined && b.y !== undefined) {
+    const visible = screen.getAllDisplays().some(d => {
+      const { x, y, width, height } = d.bounds;
+      return b.x < x + width && b.x + b.width > x && b.y < y + height && b.y + b.height > y;
+    });
+    if (!visible) { delete b.x; delete b.y; }
+  }
   win = new BrowserWindow({
     width: b.width,
     height: b.height,
