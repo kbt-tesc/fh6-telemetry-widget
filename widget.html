@@ -420,7 +420,7 @@ api.onTelemetry((d) => {
   const sf = $('steer-fill');
   sf.style.left = left + '%';
   sf.style.width = Math.max(width, 0.5) + '%';
-  $('steer-val').textContent = (ratio * 180).toFixed(0) + '°';
+  $('steer-val').textContent = d.steer;
 
   // Accel / Brake
   $('bar-accel').style.height = (d.accel / 255 * 100) + '%';
