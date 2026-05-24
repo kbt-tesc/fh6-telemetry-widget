@@ -78,7 +78,7 @@ Data is only sent while actively driving (not during menus, pauses, replays, rew
 | 204 | F32 | SuspensionTravelMetersRL | | サスストローク実測値 左後 |
 | 208 | F32 | SuspensionTravelMetersRR | | サスストローク実測値 右後 |
 | 212 | S32 | CarOrdinal | Unique car make/model ID | 車種固有ID |
-| 216 | S32 | CarClass | 0=D, 1=C, 2=B, 3=A, 4=S1, 5=S2, 6=S2+, 7=X | 車両クラス |
+| 216 | S32 | CarClass | 0=D, 1=C, 2=B, 3=A, 4=S1, 5=S2, 6=R, 7=X | 車両クラス |
 | 220 | S32 | CarPerformanceIndex | 100 (worst) to 999 (best) | PI値 (性能指数) |
 | 224 | S32 | DrivetrainType | 0=FWD, 1=RWD, 2=AWD | 駆動方式 (前輪/後輪/四輪) |
 | 228 | S32 | NumCylinders | | シリンダー数 |
