@@ -57,6 +57,8 @@ function createWindow() {
     height: b.height,
     x: b.x,
     y: b.y,
+    minWidth: 160,
+    minHeight: 120,
     alwaysOnTop: settings.alwaysOnTop,
     frame: false,
     transparent: true,
