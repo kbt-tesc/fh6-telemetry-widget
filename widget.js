@@ -120,6 +120,7 @@ app.whenReady().then(() => {
           clutch:     msg.readUInt8(317),
           handBrake:  msg.readUInt8(318),
           steer:      msg.readInt8(320),
+          receivedAt: Date.now(),
         };
       });
       newUdp.on('error', (err) => {

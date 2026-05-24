@@ -24,6 +24,7 @@ FH6 Data Out: 324 bytes/packet, ~60Hz, one-way UDP.
 - フレームレス・背景透過 (透明度調整 / 完全透明)
 - 表示: Car Info (Class, PI, 駆動方式) / ステアリング / アクセル / ブレーキ / クラッチ / ハンドブレーキ
 - メニュー時/停止時自動非表示 (設定で有効化、秒数指定可。`isRaceOn !== 1` のメニュー状態に加え、走行中でも `accel==0 && brake==0 && |steer|≦5 && |speed|≦0.5 m/s && hypot(accX, accZ)≦0.5 m/s²` なら同様に非表示。加速度の Y 軸は重力を含むため除外。水平加速度を入れることで「無入力だが外力で動き出した」状態は隠さない)
+- テレメトリ未接続検知: 直近の UDP パケットから 500ms 経過したら自動非表示を完全に止め、`No telemetry` を表示。FH6 未起動・IP/Port 誤設定・FW ブロック時に「ウィジェットだけ消えて理由が分からない」状態を防ぐ
 - IP/ポート設定可能
 - ウィンドウサイズ・位置を記憶
 - 設定は `%APPDATA%/fh6-telemetry-widget/widget-settings.json` に保存
