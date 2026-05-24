@@ -113,9 +113,3 @@ Data is only sent while actively driving (not during menus, pauses, replays, rew
 | 321 | S8 | NormalizedDrivingLine | -127 to 127 | 走行ライン位置 (正規化) |
 | 322 | S8 | NormalizedAIBrakeDifference | -127 to 127 | AIブレーキ差分 (正規化) |
 | 323 | | (padding) | 1 byte | パディング |
-
-## FH6 vs Forza Motorsport differences
-
-- FH6 adds: `CarGroup`, `SmashableVelDiff`, `SmashableMass` (after NumCylinders, +12 bytes offset)
-- FH6 removes: `TireWear`, `TrackOrdinal`
-- `WheelInPuddle` is S32 (0/1 flag) in FH6 vs F32 (depth) in some older titles
