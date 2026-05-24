@@ -1,6 +1,6 @@
 {
   "name": "fh6-telemetry-widget",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Forza Horizon 6 Telemetry Widget",
   "main": "widget.js",
   "scripts": {
