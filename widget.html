@@ -394,11 +394,13 @@ $('btn-reset-ip').addEventListener('click', () => {
 // --- Telemetry ---
 const STOP_STEER_THRESHOLD = 5;
 const STOP_SPEED_THRESHOLD = 0.5;
+const STOP_ACC_THRESHOLD = 0.5;
 
 function isStopped(d) {
   return d.accel === 0 && d.brake === 0
       && Math.abs(d.steer) <= STOP_STEER_THRESHOLD
-      && Math.abs(d.speed) <= STOP_SPEED_THRESHOLD;
+      && Math.abs(d.speed) <= STOP_SPEED_THRESHOLD
+      && Math.hypot(d.accX, d.accZ) <= STOP_ACC_THRESHOLD;
 }
 
 api.onTelemetry((d) => {

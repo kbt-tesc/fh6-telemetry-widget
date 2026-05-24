@@ -107,6 +107,8 @@ app.whenReady().then(() => {
         if (msg.length < 324) return;
         latestData = {
           isRaceOn:   msg.readInt32LE(0),
+          accX:       msg.readFloatLE(20),
+          accZ:       msg.readFloatLE(28),
           carClass:   msg.readInt32LE(216),
           carPI:      msg.readInt32LE(220),
           drivetrain: msg.readInt32LE(224),
