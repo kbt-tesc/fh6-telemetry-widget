@@ -392,17 +392,29 @@ $('btn-reset-ip').addEventListener('click', () => {
 });
 
 // --- Telemetry ---
+const STOP_STEER_THRESHOLD = 5;
+const STOP_SPEED_THRESHOLD = 0.5;
+
+function isStopped(d) {
+  return d.accel === 0 && d.brake === 0
+      && Math.abs(d.steer) <= STOP_STEER_THRESHOLD
+      && Math.abs(d.speed) <= STOP_SPEED_THRESHOLD;
+}
+
 api.onTelemetry((d) => {
-  if (d.isRaceOn !== 1) {
-    $('waiting').textContent = 'Waiting...';
+  const menu = d.isRaceOn !== 1;
+  const inactive = menu || isStopped(d);
+  if (inactive) {
+    $('waiting').textContent = menu ? 'Waiting...' : '';
     if (autoHide && !hideTimer && !settingsOpen) {
       hideTimer = setTimeout(() => { root.classList.add('hidden'); hideTimer = null; }, autoHideSec * 1000);
     }
-    return;
+    if (menu) return;
+  } else {
+    $('waiting').textContent = '';
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    root.classList.remove('hidden');
   }
-  $('waiting').textContent = '';
-  if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-  root.classList.remove('hidden');
 
   // Car info
   const badge = $('t-class');

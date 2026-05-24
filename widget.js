@@ -110,6 +110,7 @@ app.whenReady().then(() => {
           carClass:   msg.readInt32LE(216),
           carPI:      msg.readInt32LE(220),
           drivetrain: msg.readInt32LE(224),
+          speed:      msg.readFloatLE(256),
           accel:      msg.readUInt8(315),
           brake:      msg.readUInt8(316),
           clutch:     msg.readUInt8(317),
