@@ -404,6 +404,8 @@ $('btn-reset-ip').addEventListener('click', () => {
 const STOP_STEER_THRESHOLD = 5;
 const STOP_SPEED_THRESHOLD = 0.5;
 const STOP_ACC_THRESHOLD = 0.5;
+// 直近のパケット受信からこの時間が経過したら "未接続" 扱い (FH6停止/IP違い/ファイアウォール等)
+const STALE_MS = 500;
 
 function isStopped(d) {
   return d.accel === 0 && d.brake === 0
@@ -413,6 +415,15 @@ function isStopped(d) {
 }
 
 api.onTelemetry((d) => {
+  // パケットが古い (= テレメトリ未接続/FH6 停止中) なら autohide を完全に無効化して表示を維持する。
+  // 古いデータでの車両情報描画もスキップする (見かけ上は最後のフレームのまま固まる)。
+  if (Date.now() - d.receivedAt > STALE_MS) {
+    $('waiting').textContent = 'No telemetry';
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    root.classList.remove('hidden');
+    return;
+  }
+
   const menu = d.isRaceOn !== 1;
   const inactive = menu || isStopped(d);
   if (inactive) {
